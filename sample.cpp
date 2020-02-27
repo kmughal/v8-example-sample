@@ -1,7 +1,3 @@
-// Copyright 2015 the V8 project authors. All rights reserved.
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file.
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -28,7 +24,6 @@ using v8::PropertyCallbackInfo;
 using v8::String;
 using v8::Value;
 using v8::Promise;
-
 
 int getNumberOfCores() {
   int nm[2];
@@ -115,9 +110,9 @@ void ReadFileFromSystem(const v8::FunctionCallbackInfo<v8::Value>& args) {
   }
 }
 
-char* GetFile() {
+char* GetFile(char* path) {
   FILE* f = fopen(
-      "/Users/khurram/Documents/Code/source-codes/depot_tools/v8/samples/"
+     path
       "fs-example.js",
       "rb");
   fseek(f, 0, SEEK_END);
