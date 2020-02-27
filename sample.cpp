@@ -69,7 +69,6 @@ void HelloWorld(const v8::FunctionCallbackInfo<v8::Value>& args) {
 
 char* Read_File(char* filename) {
   if (!exist(filename)) {
-    char* str1 = (char*)"This is GeeksForGeeks";
     throw "file not found";
   }
   FILE* f = fopen(filename, "rb");
