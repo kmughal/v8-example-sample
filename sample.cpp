@@ -27,6 +27,8 @@ using v8::Persistent;
 using v8::PropertyCallbackInfo;
 using v8::String;
 using v8::Value;
+using v8::Promise;
+
 
 int getNumberOfCores() {
   int nm[2];
@@ -59,6 +61,15 @@ inline bool exist(const std::string& name) {
 void FindCors(Local<String> name, const PropertyCallbackInfo<Value>& info) {
   int cors = getNumberOfCores();
   info.GetReturnValue().Set(cors);
+}
+
+void HelloWorld(const v8::FunctionCallbackInfo<v8::Value>& args) {
+  Isolate* isolate = args.GetIsolate();
+  auto context = isolate->GetCurrentContext();
+  auto resolver = v8::Promise::Resolver::New(context).ToLocalChecked();
+
+  args.GetReturnValue().Set(resolver->GetPromise());
+  resolver->Resolve(context,String::NewFromUtf8(isolate, "world"));
 }
 
 char* Read_File(char* filename) {
@@ -95,7 +106,6 @@ void ReadFileFromSystem(const v8::FunctionCallbackInfo<v8::Value>& args) {
     try {
       v8::String::Utf8Value utf8(isolate, result);
       file_contents = Read_File(*utf8);
-      printf("%s", file_contents);
     } catch (const char* msg) {
       argv[0] = v8::String::NewFromUtf8(isolate, msg);
     }
@@ -174,6 +184,11 @@ int main(int argc, char* argv[]) {
               .ToLocalChecked(),
           FunctionTemplate::New(isolate, ReadFileFromSystem));
 
+      global->Set(
+          String::NewFromUtf8(isolate, "helloWorld", NewStringType::kNormal)
+              .ToLocalChecked(),
+          FunctionTemplate::New(isolate, HelloWorld));
+
       // Add a test property to the global object...
       global->Set(isolate, "func_property", v8::Number::New(isolate, 1));
 
@@ -199,21 +214,4 @@ int main(int argc, char* argv[]) {
   return 0;
 }
 
-// g++ -I. -Iinclude samples/sample.cc -o sample -lv8_monolith
-// -Lout.gn/x64.release.sample/obj/ -pthread -std=c++0x
-
-// v8::Local<v8::FunctionTemplate> t = v8::FunctionTemplate::New(isolate);
-// t->Set(isolate, "func_property", v8::Number::New(isolate, 1));
-// v8::Local<v8::Template> proto_t = t->PrototypeTemplate();
-// proto_t->Set(isolate,
-//              "proto_method",
-//              v8::FunctionTemplate::New(isolate, InvokeCallback));
-// proto_t->Set(isolate, "proto_const", v8::Number::New(isolate, 2));
-// v8::Local<v8::ObjectTemplate> instance_t = t->InstanceTemplate();
-// instance_t->SetAccessor(String::NewFromUtf8(isolate, "instance_accessor"),
-//                         InstanceAccessorCallback);
-// instance_t->SetNamedPropertyHandler(PropertyHandlerCallback);
-// instance_t->Set(String::NewFromUtf8(isolate, "instance_property"),
-//                 Number::New(isolate, 3));
-// v8::Local<v8::Function> function = t->GetFunction();
-// v8::Local<v8::Object> instance = function->NewInstance();
+// g++ -I. -Iinclude samples/sample.cc -o sample -lv8_monolith -Lout.gn/x64.release.sample/obj/ -pthread -std=c++0x
